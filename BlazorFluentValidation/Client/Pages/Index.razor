@@ -5,84 +5,80 @@
 
 <h1>Blazored FluentValidation Sample</h1>
 
+<Button Type="primary">Hello World!</Button>
+
 <hr class="mb-5" />
 
-<EditForm Model="@Person" OnValidSubmit="@SubmitValidForm">
-    <FluentValidationValidator @ref="_fluentValidationValidator" />
-    <ValidationSummary />
+<EditForm Model="@Person">
+    <FluentValidationValidator />
 
-    <p>
+    <div class="form-group">
         <label>First Name: </label>
-        <InputText @bind-Value="@Person.FirstName" />
+        <InputText @bind-Value="@Person.FirstName" class="form-control" />
         <ValidationMessage For="@(() => Person.FirstName)" />
-    </p>
+    </div>
 
-    <p>
+    <div class="form-group">
         <label>Last Name: </label>
-        <InputText @bind-Value="@Person.LastName" />
+        <InputText @bind-Value="@Person.LastName" class="form-control" />
         <ValidationMessage For="@(() => Person.LastName)" />
-    </p>
+    </div>
+
+    <div class="form-group">
+        <label>Address List: </label>
+        @foreach (var address in Person.Adresses)
+        {
+            <p>- @address.City, @address.Country</p>
+        }
+    </div>
 
     <hr />
 
-    <p>
-        <label>Age: </label>
-        <InputNumber @bind-Value="@Person.Age" />
-        <ValidationMessage For="@(() => Person.Age)" />
-    </p>
+    <p>Add Address</p>
+    <div class="form-group">
+        <label>City: </label>
+        <InputText @bind-Value="@NewAddress.City" class="form-control" />
+        <ValidationMessage For="@(() => NewAddress.City)" />
+    </div>
+    <div class="form-group">
+        <label>Country: </label>
+        <InputText @bind-Value="@NewAddress.Country" class="form-control" />
+        <ValidationMessage For="@(() => NewAddress.Country)" />
+    </div>
 
-    <p>
-        <label>Email Address: </label>
-        <InputText @bind-Value="@Person.EmailAddress" />
-        <ValidationMessage For="@(() => Person.EmailAddress)" />
-    </p>
+    <button @onclick="AddAddress">Add Address</button>
 
-    <p>
-        <label>Address: Line 1: </label>
-        <InputText @bind-Value="@Person.Address.Line1" />
-        <ValidationMessage For="@(() => Person.Address.Line1)" />
-    </p>
-
-    <p>
-        <label>Address: Line 2: </label>
-        <InputText @bind-Value="@Person.Address.Line2" />
-    </p>
-
-    <p>
-        <label>Address: Town: </label>
-        <InputText @bind-Value="@Person.Address.Town" />
-        <ValidationMessage For="@(() => Person.Address.Town)" />
-    </p>
-
-    <p>
-        <label>Address: County: </label>
-        <InputText @bind-Value="@Person.Address.County" />
-        <ValidationMessage For="@(() => Person.Address.County)" />
-    </p>
-
-    <p>
-        <label>Address: Postcode: </label>
-        <InputText @bind-Value="@Person.Address.Postcode" />
-        <ValidationMessage For="@(() => Person.Address.Postcode)" />
-    </p>
+    <hr />
 
     <button type="submit">Save</button>
+
+    @if (isValid)
+    {
+        <div class="alert alert-success" role="alert">
+            Oh wow! I'm valid!
+        </div>
+    }
 </EditForm>
-<br />
-<button @onclick="PartialValidate">Partial Validation</button>
 
 @code {
     Person Person { get; set; } = new Person();
+    Address NewAddress { get; set; } = new Address();
 
-    private FluentValidationValidator _fluentValidationValidator;
+    bool isValid { get; set; } = false;
 
-    void SubmitValidForm()
+    public void AddAddress()
     {
-        Console.WriteLine("Form Submitted Successfully!");
-    }
+        var validator = new AddressValidator();
+        var result = validator.Validate(NewAddress);
 
-    void PartialValidate()
-    {
-        Console.WriteLine($"Partial validation result : {_fluentValidationValidator.Validate(options => options.IncludeRuleSets("Names"))}");
+        if (!result.IsValid)
+        {
+            isValid = false;
+            return;
+        }
+
+        Person.Adresses.Add(NewAddress);
+        NewAddress = new Address();
+        isValid = true;
     }
 }
